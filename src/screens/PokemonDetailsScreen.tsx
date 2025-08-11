@@ -5,12 +5,12 @@ import {
   StyleSheet,
   SafeAreaView,
   TouchableOpacity,
+  Image,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RouteProp } from '@react-navigation/native';
 import type { RootStackParamList } from '../types/navigation';
-import { useStepTracker } from '../hooks/useStepTracker';
 
 type PokemonDetailsScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -22,21 +22,53 @@ type PokemonDetailsScreenRouteProp = RouteProp<
   'PokemonDetails'
 >;
 
+const PokemonCard: React.FC<{
+  pokemonName: string;
+  pokemonType: string;
+  pokemonLvl: number;
+  imagePokemon: string;
+}> = ({
+  pokemonName = '',
+  pokemonType = '',
+  pokemonLvl = 0,
+  imagePokemon = '',
+}) => {
+  return (
+    <View style={styles.pokemonCard}>
+      <Image
+        source={{ uri: imagePokemon }}
+        style={styles.pokemonImage}
+        resizeMode="contain"
+      />
+
+      <View style={styles.starContainer}>
+        <Text style={styles.starIcon}>⭐</Text>
+        <Text style={styles.levelText}>{pokemonLvl}</Text>
+      </View>
+
+      <Text style={styles.pokemonName}>{pokemonName}</Text>
+      <Text style={styles.pokemonType}>{pokemonType}</Text>
+
+      <View style={styles.loaderContainer}>
+        <View style={styles.progressBar}>
+          <View style={[styles.progressFill, { width: '80%' }]} />
+        </View>
+        <Text style={styles.progressText}>80%</Text>
+      </View>
+
+      <TouchableOpacity style={styles.powerUpButton}>
+        <Text style={styles.powerUpButtonText}>Power Up</Text>
+      </TouchableOpacity>
+    </View>
+  );
+};
+
 export const PokemonDetailsScreen: React.FC = () => {
   const navigation = useNavigation<PokemonDetailsScreenNavigationProp>();
   const route = useRoute<PokemonDetailsScreenRouteProp>();
-  const { pokemonName } = route.params;
+  const { pokemonName, pokemonType, pokemonImage } = route.params;
 
-  const {
-    isAvailable: isStepCountingAvailable,
-    isTracking,
-    stepCount,
-    hasPermission,
-    startTracking,
-    stopTracking,
-    requestPermission,
-    resetStepCount,
-  } = useStepTracker();
+  const pokemonLvl = 2;
 
   const handleGoBack = () => {
     navigation.goBack();
@@ -46,48 +78,17 @@ export const PokemonDetailsScreen: React.FC = () => {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={handleGoBack}>
-          <Text>← Back</Text>
+          <Text style={styles.backButton}>← Back</Text>
         </TouchableOpacity>
-        <Text>{pokemonName}</Text>
       </View>
 
       <View style={styles.content}>
-        <Text style={styles.statusText}>
-          Permission granted: {hasPermission ? 'Yes' : 'No'}
-        </Text>
-        <Text style={styles.statusText}>
-          Step counting available: {isStepCountingAvailable ? 'Yes' : 'No'}
-        </Text>
-        <Text style={styles.text}>Current step count: {stepCount}</Text>
-
-        {!hasPermission && (
-          <TouchableOpacity
-            style={styles.permissionButton}
-            onPress={requestPermission}
-          >
-            <Text style={styles.buttonText}>Grant Permission</Text>
-          </TouchableOpacity>
-        )}
-
-        {isStepCountingAvailable && hasPermission && (
-          <View style={styles.buttonRow}>
-            {!isTracking ? (
-              <TouchableOpacity style={styles.button} onPress={startTracking}>
-                <Text style={styles.buttonText}>Start Tracking</Text>
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity style={styles.button} onPress={stopTracking}>
-                <Text style={styles.buttonText}>Stop Tracking</Text>
-              </TouchableOpacity>
-            )}
-            <TouchableOpacity
-              style={styles.resetButton}
-              onPress={resetStepCount}
-            >
-              <Text style={styles.buttonText}>Reset</Text>
-            </TouchableOpacity>
-          </View>
-        )}
+        <PokemonCard
+          pokemonName={pokemonName}
+          pokemonType={pokemonType}
+          pokemonLvl={pokemonLvl}
+          imagePokemon={pokemonImage}
+        />
       </View>
     </SafeAreaView>
   );
@@ -102,16 +103,71 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+  },
+  backButton: {
+    fontSize: 16,
+    color: '#007AFF',
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginLeft: 10,
   },
   content: {
+    flex: 1,
     padding: 20,
+  },
+  pokemonCard: {
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 20,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    flex: 1, // Растягиваем на всю доступную высоту
+    justifyContent: 'space-between', // Равномерно распределяем элементы
+  },
+  pokemonImage: {
+    width: 150,
+    height: 150,
+    marginBottom: 20,
+  },
+  pokemonName: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  pokemonType: {
+    fontSize: 16,
+    color: '#666',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#e0e0e0',
+    marginVertical: 20,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: '#333',
   },
   statusText: {
     fontSize: 16,
     marginBottom: 10,
     color: '#666',
+  },
+  stepCountText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginTop: 10,
+    color: '#007AFF',
   },
   buttonRow: {
     flexDirection: 'row',
@@ -149,8 +205,59 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  text: {
-    margin: 10,
-    fontSize: 20,
+  starContainer: {
+    position: 'relative',
+    marginBottom: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  starIcon: {
+    position: 'absolute',
+    fontSize: 70,
+    color: '#FFC107',
+    textShadowColor: 'rgba(0,0,0,0.2)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 3,
+  },
+  levelText: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#4A148C',
+  },
+  loaderContainer: {
+    width: '100%',
+    marginVertical: 20,
+  },
+  progressBar: {
+    height: 22,
+    backgroundColor: '#e0e0e0',
+    borderRadius: 16,
+    overflow: 'hidden',
+    marginBottom: 10,
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: '#007AFF',
+    borderRadius: 16,
+    width: '80%',
+  },
+  progressText: {
+    textAlign: 'center',
+    fontSize: 14,
+    color: '#666',
+  },
+  powerUpButton: {
+    backgroundColor: '#4CAF50',
+    paddingHorizontal: 40,
+    paddingVertical: 18,
+    borderRadius: 10,
+    minWidth: 140,
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  powerUpButtonText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: '600',
   },
 });

@@ -66,11 +66,13 @@ export const HomeScreen: React.FC = () => {
     pokemonId: string,
     pokemonName: string,
     pokemonImage: string,
+    pokemonType: string,
   ) => {
     navigation.navigate('PokemonDetails', {
       pokemonId,
       pokemonName,
       pokemonImage,
+      pokemonType,
     });
   };
 
@@ -81,7 +83,7 @@ export const HomeScreen: React.FC = () => {
   }) => (
     <TouchableOpacity
       style={styles.pokemonItem}
-      onPress={() => handlePokemonPress(item.id, item.name, item.image)}
+      onPress={() => handlePokemonPress(item.id, item.name, item.image, item.type)}
     >
       <Text style={styles.pokemonName}>{item.name}</Text>
       <Text style={styles.pokemonId}>#{item.id}</Text>

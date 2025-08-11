@@ -4,6 +4,7 @@ export type RootStackParamList = {
     pokemonId: string;
     pokemonName: string;
     pokemonImage: string;
+    pokemonType: string;
   };
 };
 
