@@ -18,6 +18,19 @@
     "react-native-safe-area-context": "^5.6.0",
     "react-native-screens": "^4.13.1"
   },
+  "codegenConfig": {
+    "name": "NativeStepTrackerSpec",
+    "type": "modules",
+    "jsSrcsDir": "specs",
+    "android": {
+      "javaPackageName": "com.nativesteptracker"
+    },
+    "ios": {
+      "modulesProvider": {
+        "NativeStepTracker": "RTCNativeStepTracker"
+      }
+    }
+  },
   "devDependencies": {
     "@babel/core": "^7.25.2",
     "@babel/preset-env": "^7.25.3",
