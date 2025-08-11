@@ -127,8 +127,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
-    flex: 1, // Растягиваем на всю доступную высоту
-    justifyContent: 'space-between', // Равномерно распределяем элементы
+    flex: 1, 
+    justifyContent: 'space-between', 
   },
   pokemonImage: {
     width: 150,
