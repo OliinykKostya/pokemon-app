@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../types/navigation';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { usePokemonLevelStore } from '../stores';
 
 type PokemonListNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -20,7 +21,6 @@ type PokemonListNavigationProp = NativeStackNavigationProp<
 >;
 
 interface Pokemon {
-  id: number;
   name: string;
   image: string;
   types: string[];
@@ -45,45 +45,55 @@ export const PokemonList: React.FC<PokemonListProps> = ({
 }) => {
   const navigation = useNavigation<PokemonListNavigationProp>();
   const insets = useSafeAreaInsets();
+  const { getPokemonLevel } = usePokemonLevelStore();
 
-
-  const handlePokemonPress = (
-    pokemonId: string,
+  const handlePokemonPress = useCallback((
     pokemonName: string,
     pokemonImage: string,
     pokemonType: string,
   ) => {
     navigation.navigate('PokemonDetails', {
-      pokemonId,
       pokemonName,
       pokemonImage,
       pokemonType,
     });
-  };
+  }, [navigation]);
 
-  const renderPokemonItem = ({ item }: { item: Pokemon }) => (
-    <TouchableOpacity
-      style={styles.pokemonItem}
-      onPress={() =>
-        handlePokemonPress(
-          item.id.toString(),
-          item.name,
-          item.image,
-          item.types.join(', '),
-        )
-      }
-    >
-      <Image
-        source={{ uri: item.image }}
-        style={styles.pokemonImage}
-        resizeMode="contain"
-      />
-      <View style={styles.pokemonInfo}>
-        <Text style={styles.pokemonName}>{item.name}</Text>
-        <Text style={styles.pokemonTypes}>{item.types.join(', ')}</Text>
-      </View>
-    </TouchableOpacity>
-  );
+  const renderPokemonItem = useCallback(({ item }: { item: Pokemon }) => {
+    const pokemonLevel = getPokemonLevel(item.name);
+    const currentLevel = pokemonLevel ? pokemonLevel.level : 1;
+
+    return (
+      <TouchableOpacity
+        style={styles.pokemonItem}
+        onPress={() =>
+          handlePokemonPress(
+            item.name,
+            item.image,
+            item.types.join(', '),
+          )
+        }
+      >
+        <Image
+          source={{ uri: item.image }}
+          style={styles.pokemonImage}
+          resizeMode="contain"
+          onError={(error) => {
+            console.warn('Failed to load Pokemon image:', item.name, error.nativeEvent);
+          }}
+        />
+        <View style={styles.pokemonInfo}>
+          <Text style={styles.pokemonName}>{item.name}</Text>
+          <Text style={styles.pokemonTypes}>{item.types.join(', ')}</Text>
+        </View>
+        
+        <View style={styles.levelContainer}>
+          <Text style={styles.starIcon}>⭐</Text>
+          <Text style={styles.levelText}>{currentLevel}</Text>
+        </View>
+      </TouchableOpacity>
+    );
+  }, [handlePokemonPress, getPokemonLevel]);
 
   const renderFooter = () => {
     if (!hasMore) return null;
@@ -123,7 +133,7 @@ export const PokemonList: React.FC<PokemonListProps> = ({
     <FlatList
       data={pokemons}
       renderItem={renderPokemonItem}
-      keyExtractor={item => item.id.toString()}
+      keyExtractor={item => item.name}
       contentContainerStyle={[styles.listContainer, { paddingTop: insets.top }]}
       refreshControl={
         <RefreshControl
@@ -152,6 +162,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -241,5 +252,22 @@ const styles = StyleSheet.create({
     marginTop: 10,
     color: '#007AFF',
     fontSize: 16,
+  },
+  levelContainer: {
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 10,
+  },
+  starIcon: {
+    fontSize: 40,
+    color: '#FFD700', // Gold color for stars
+  },
+  levelText: {
+    position: 'absolute',
+    fontSize: 13,
+    fontWeight: 'bold',
+    color: '#333',
+    textAlign: 'center',
   },
 });

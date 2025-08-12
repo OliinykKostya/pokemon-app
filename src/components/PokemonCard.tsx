@@ -53,6 +53,9 @@ export const PokemonCard: React.FC<PokemonCardProps> = ({
             source={{ uri: imagePokemon }}
             style={styles.pokemonImage}
             resizeMode="contain"
+            onError={(error) => {
+              console.warn('Failed to load Pokemon image in card:', imagePokemon, error.nativeEvent);
+            }}
           />
         </View>
 

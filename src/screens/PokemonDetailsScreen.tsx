@@ -13,6 +13,8 @@ import type { RouteProp } from '@react-navigation/native';
 import type { RootStackParamList } from '../types/navigation';
 import { useStepTracker } from '../hooks/useStepTracker';
 import { PokemonCard } from '../components/PokemonCard';
+import { usePokemonLevelStore } from '../stores';
+import { STEPS_PER_LEVEL } from '../constants/pokemon';
 
 type PokemonDetailsScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -24,24 +26,21 @@ type PokemonDetailsScreenRouteProp = RouteProp<
   'PokemonDetails'
 >;
 
-const STEPS_PER_LEVEL = 100;
-
 export const PokemonDetailsScreen: React.FC = () => {
   const navigation = useNavigation<PokemonDetailsScreenNavigationProp>();
   const route = useRoute<PokemonDetailsScreenRouteProp>();
   const { pokemonName, pokemonType, pokemonImage } = route.params;
 
-  const [totalSteps, setTotalSteps] = useState(0);
   const [isPoweringUp, setIsPoweringUp] = useState(false);
+  const [totalSteps, setTotalSteps] = useState(0);
+  const countRef = useRef(0);
 
-  const currentLevel = Math.floor(totalSteps / STEPS_PER_LEVEL) + 1;
-
-  const stepsToNextLevel = totalSteps % STEPS_PER_LEVEL;
-
-  const progressPercentage = Math.min(
-    (stepsToNextLevel / STEPS_PER_LEVEL) * 100,
-    100,
-  );
+  const {
+    getPokemonLevel,
+    setPokemonLevel,
+    setCurrentPokemonId,
+    calculateProgress,
+  } = usePokemonLevelStore();
 
   const {
     stepCount,
@@ -72,21 +71,46 @@ export const PokemonDetailsScreen: React.FC = () => {
   };
 
   useEffect(() => {
-    setTotalSteps(prev => {
-      if (stepCount < prev) {
-        return prev + stepCount;
-      } else {
-        const newTotalSteps = stepCount - prev;
+    setCurrentPokemonId(pokemonName);
 
-        return prev + newTotalSteps;
-      }
-    });
-  }, [stepCount]);
+    const savedPokemon = getPokemonLevel(pokemonName);
+    if (savedPokemon) {
+      const savedTotalSteps =
+        (savedPokemon.level - 1) * STEPS_PER_LEVEL +
+        savedPokemon.stepsToNextLevel;
+      setTotalSteps(savedTotalSteps);
+    }
+  }, [pokemonName, getPokemonLevel, setCurrentPokemonId]);
+
+  useEffect(() => {
+    if (stepCount > 0 && isPoweringUp) {
+      setTotalSteps(prev => {
+        if (stepCount < prev) {
+          countRef.current = prev + stepCount;
+          return prev + stepCount;
+        } else {
+          const newTotalSteps = stepCount - prev;
+          countRef.current = prev + newTotalSteps;
+          return prev + newTotalSteps;
+        }
+      });
+    }
+  }, [stepCount, isPoweringUp]);
 
   const handlePowerUp = async () => {
     if (isPoweringUp) {
       setIsPoweringUp(false);
       stableStopTracking();
+
+      if (totalSteps > 0) {
+        const progress = calculateProgress(totalSteps);
+        const pokemonData = {
+          id: pokemonName,
+          level: progress.currentLevel,
+          stepsToNextLevel: progress.stepsToNextLevel,
+        };
+        setPokemonLevel(pokemonData);
+      }
       return;
     }
 
@@ -103,21 +127,40 @@ export const PokemonDetailsScreen: React.FC = () => {
 
   useEffect(() => {
     return () => {
-      if (isPoweringUp) {
-        stableStopTracking();
-        setIsPoweringUp(false);
+      stableStopTracking();
+      setIsPoweringUp(false);
+
+      if (countRef.current > 0) {
+        const progress = calculateProgress(countRef.current);
+        const pokemonData = {
+          id: pokemonName,
+          level: progress.currentLevel,
+          stepsToNextLevel: progress.stepsToNextLevel,
+        };
+        setPokemonLevel(pokemonData);
       }
     };
-  }, [stableStopTracking, isPoweringUp]);
+  }, [
+    stableStopTracking,
+    setIsPoweringUp,
+    calculateProgress,
+    pokemonName,
+    setPokemonLevel,
+  ]);
 
   const handleGoBack = () => {
     navigation.goBack();
   };
 
+  const progress = calculateProgress(totalSteps);
+  const currentLevel = progress.currentLevel;
+  const stepsToNextLevel = progress.stepsToNextLevel;
+  const progressPercentage = progress.progressPercentage;
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={handleGoBack}>
+        <TouchableOpacity onPress={handleGoBack} hitSlop={{ top: 40, bottom: 40, left: 40, right: 40 }}>
           <Text style={styles.backButton}>← Back</Text>
         </TouchableOpacity>
       </View>
@@ -151,6 +194,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 20,
+
   },
   backButton: {
     fontSize: 16,
