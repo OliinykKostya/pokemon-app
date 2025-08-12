@@ -1,97 +1,139 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# 🎮 Pokemon App
 
-# Getting Started
+**React Native app for step tracking and Pokemon level progression**
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+## 📱 Project Description
 
-## Step 1: Start Metro
+Pokemon App is a mobile application that combines fitness tracking with gaming mechanics. Users can:
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+- 🏃‍♂️ **Track steps** using native Android module
+- 🎯 **Level up Pokemon** based on steps taken
+- 📱 **Browse Pokemon list** from PokeAPI
+- 💾 **Save progress** between sessions
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+## ✨ Key Features
 
-```sh
-# Using npm
+### 🏃‍♂️ Step Tracking
+- Native modules for Android and Ios with support for various sensors
+
+### 🎮 Pokemon Level System
+- **100 steps = +1 level** (configurable in constants)
+- Progress bar shows progress to next level
+- Automatic progress saving when leaving screen
+
+
+## 🚀 How to Run
+
+### 📋 Prerequisites
+
+- Node.js 16+ 
+- React Native CLI
+- Android Studio (for Android)
+- Xcode (for iOS, macOS only)
+- JDK 11+ (for Android)
+
+### 🔧 Install Dependencies
+
+```bash
+# Install npm packages
+npm install
+
+# For iOS (macOS only)
+cd ios
+bundle install
+bundle exec pod install
+cd ..
+```
+
+### 📱 Run Application
+
+#### 1. Start Metro Server
+```bash
 npm start
-
-# OR using Yarn
+# or
 yarn start
 ```
 
-## Step 2: Build and run your app
-
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
-
-### Android
-
-```sh
-# Using npm
+#### 2. Run on Android
+```bash
 npm run android
-
-# OR using Yarn
+# or
 yarn android
 ```
 
-### iOS
-
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
-
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
-
-```sh
-bundle install
-```
-
-Then, and every time you update your native dependencies, run:
-
-```sh
-bundle exec pod install
-```
-
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
-
-```sh
-# Using npm
+#### 3. Run on iOS (macOS only)
+```bash
 npm run ios
-
-# OR using Yarn
+# or
 yarn ios
 ```
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+### 🔐 Permissions
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+On first run, the app will request permission for activity tracking for step counter functionality.
 
-## Step 3: Modify your app
+## 📚 Used Libraries
 
-Now that you have successfully run the app, let's make changes!
+### 🎯 Core Libraries
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
+| **React Native** | 0.80 | Main framework for mobile development |
+| **TypeScript** | 4.9+ | JavaScript code typing |
+| **React Navigation** | 6.x | Navigation between screens |
+| **Zustand** | 4.x | Application state management |
 
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
+### 🎨 UI and Animations
 
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
+| **Animated API** | Built-in React Native animations |
 
-## Congratulations! :tada:
+### 💾 Data Storage
 
-You've successfully run and modified your React Native App. :partying_face:
+| **react-native-mmkv** | Fast key-value storage |
+| **Zustand persist middleware** | Automatic state persistence |
 
-### Now what?
+### 🔌 Native Modules
 
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
+| **NativeStepTracker** | Step tracking via Android sensors |
+| **TurboModules** | Modern native module architecture |
 
-# Troubleshooting
+### 🌐 API and Network
 
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
+| **Fetch API** | HTTP requests to PokeAPI |
+| **PokeAPI** | Pokemon data source |
 
-# Learn More
+## 🏗️ Project Architecture
 
-To learn more about React Native, take a look at the following resources:
+### 📁 Folder Structure
 
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+```
+src/
+├── components/          # Reusable components
+│   ├── PokemonCard.tsx # Pokemon card
+│   └── PokemonList.tsx # Pokemon list
+├── hooks/              # Custom React hooks
+│   ├── useStepTracker.ts      # Step tracking logic
+│   ├── usePokemonApi.ts      # PokeAPI requests
+│   ├── useButtonAnimation.ts  # Button animations
+│   └── index.ts              # Export all hooks
+├── screens/            # Application screens
+│   ├── HomeScreen.tsx        # Main screen with list
+│   └── PokemonDetailsScreen.tsx # Pokemon details + Power Up
+├── stores/             # Zustand state manager
+│   ├── usePokemonLevelStore.ts # Pokemon level storage
+│   └── index.ts              # Export all stores
+├── types/              # TypeScript types
+│   └── navigation.ts         # Navigation types
+├── constants/          # Application constants
+│   └── pokemon.ts           # Pokemon constants
+└── utils/              # Utilities and helpers
+```
+
+### 🔄 Data Flow
+
+1. **HomeScreen** → `usePokemonApi` → PokeAPI → Pokemon list
+2. **PokemonDetailsScreen** → `useStepTracker` → native module → steps
+3. **Power Up logic** → level calculation → `usePokemonLevelStore` → MMKV
+4. **UI updates** → component re-render with new data
+
+---
+
+**Pokemon App** - made with ❤️ on React Native
