@@ -5,8 +5,8 @@ import {
   StyleSheet,
   SafeAreaView,
   TouchableOpacity,
-  Animated,
 } from 'react-native';
+import { useButtonAnimation } from '../hooks/useButtonAnimation';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RouteProp } from '@react-navigation/native';
@@ -50,24 +50,39 @@ export const PokemonDetailsScreen: React.FC = () => {
     requestPermission,
   } = useStepTracker();
 
+  const { buttonScale, handlePressIn, handlePressOut } = useButtonAnimation();
+
   const stableStopTracking = useCallback(stopTracking, [stopTracking]);
 
-  const buttonScaleRef = useRef(new Animated.Value(1));
+  const handlePowerUp = async () => {
+    if (isPoweringUp) {
+      setIsPoweringUp(false);
+      stableStopTracking();
 
-  const handleButtonPressIn = () => {
-    Animated.timing(buttonScaleRef.current, {
-      toValue: 0.6,
-      duration: 20,
-      useNativeDriver: true,
-    }).start();
+      if (totalSteps > 0) {
+        const progress = calculateProgress(totalSteps);
+        const pokemonData = {
+          id: pokemonName,
+          level: progress.currentLevel,
+          stepsToNextLevel: progress.stepsToNextLevel,
+        };
+        setPokemonLevel(pokemonData);
+      }
+      return;
+    }
+
+    if (!hasPermission) {
+      const permissionGranted = await requestPermission();
+      if (!permissionGranted) {
+        return;
+      }
+    }
+
+    setIsPoweringUp(true);
+    startTracking();
   };
-
-  const handleButtonPressOut = () => {
-    Animated.timing(buttonScaleRef.current, {
-      toValue: 1.2,
-      duration: 150,
-      useNativeDriver: true,
-    }).start();
+  const handleGoBack = () => {
+    navigation.goBack();
   };
 
   useEffect(() => {
@@ -97,34 +112,6 @@ export const PokemonDetailsScreen: React.FC = () => {
     }
   }, [stepCount, isPoweringUp]);
 
-  const handlePowerUp = async () => {
-    if (isPoweringUp) {
-      setIsPoweringUp(false);
-      stableStopTracking();
-
-      if (totalSteps > 0) {
-        const progress = calculateProgress(totalSteps);
-        const pokemonData = {
-          id: pokemonName,
-          level: progress.currentLevel,
-          stepsToNextLevel: progress.stepsToNextLevel,
-        };
-        setPokemonLevel(pokemonData);
-      }
-      return;
-    }
-
-    if (!hasPermission) {
-      const permissionGranted = await requestPermission();
-      if (!permissionGranted) {
-        return;
-      }
-    }
-
-    setIsPoweringUp(true);
-    startTracking();
-  };
-
   useEffect(() => {
     return () => {
       stableStopTracking();
@@ -148,10 +135,6 @@ export const PokemonDetailsScreen: React.FC = () => {
     setPokemonLevel,
   ]);
 
-  const handleGoBack = () => {
-    navigation.goBack();
-  };
-
   const progress = calculateProgress(totalSteps);
   const currentLevel = progress.currentLevel;
   const stepsToNextLevel = progress.stepsToNextLevel;
@@ -160,7 +143,10 @@ export const PokemonDetailsScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={handleGoBack} hitSlop={{ top: 40, bottom: 40, left: 40, right: 40 }}>
+        <TouchableOpacity
+          onPress={handleGoBack}
+          hitSlop={{ top: 40, bottom: 40, left: 40, right: 40 }}
+        >
           <Text style={styles.backButton}>← Back</Text>
         </TouchableOpacity>
       </View>
@@ -176,9 +162,9 @@ export const PokemonDetailsScreen: React.FC = () => {
           currentSteps={stepsToNextLevel}
           stepsToNextLevel={STEPS_PER_LEVEL}
           progressPercentage={progressPercentage}
-          buttonScale={buttonScaleRef.current}
-          onPressIn={handleButtonPressIn}
-          onPressOut={handleButtonPressOut}
+          buttonScale={buttonScale}
+          onPressIn={handlePressIn}
+          onPressOut={handlePressOut}
         />
       </View>
     </SafeAreaView>
@@ -194,7 +180,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 20,
-
   },
   backButton: {
     fontSize: 16,
