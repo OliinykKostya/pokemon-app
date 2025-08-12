@@ -6,7 +6,7 @@
 
 Pokemon App is a mobile application that combines fitness tracking with gaming mechanics. Users can:
 
-- 🏃‍♂️ **Track steps** using native Android module
+- 🏃‍♂️ **Track steps** using native Android and Ios modules
 - 🎯 **Level up Pokemon** based on steps taken
 - 📱 **Browse Pokemon list** from PokeAPI
 - 💾 **Save progress** between sessions
